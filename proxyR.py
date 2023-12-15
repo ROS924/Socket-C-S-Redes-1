@@ -12,10 +12,10 @@ def start_proxy(lista:list, port_client=4444, port_server=8888 ):
     proxy_socket_with_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     proxy_socket_with_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    my_ip = '192.168.0.2'
+    my_ip = '192.168.0.2' # mudar para os ips de verdade
 
     host = '0.0.0.0'  # Listen on all available interfaces
-    client_ip = '192.168.0.1'
+    client_ip = '192.168.0.1' # mudar para os ips de verdade
 
     # escutar conexão com cliente
     proxy_socket_with_client.bind((client_ip, port_client))
@@ -52,7 +52,6 @@ def start_proxy(lista:list, port_client=4444, port_server=8888 ):
                     for data in file.readlienes():
                         client_socket.send(data)
 
-                pass
 
             # lista.append(client_address[0]) usar com o servidor
             print(client_address)

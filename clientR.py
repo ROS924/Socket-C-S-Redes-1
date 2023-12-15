@@ -8,9 +8,9 @@ Created on Thu Dec 14 11:46:06 2023
 import socket
 import json
 
-my_ip = '192.198.0.1'
+my_ip = '192.198.0.1' # mudar para os ips de verdade
 port = 4444
-proxy_ip = '192.198.0.2'
+proxy_ip = '192.198.0.2' # mudar para os ips de verdade
 
 #client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 #client_socket.bind((my_ip, port))
@@ -91,6 +91,9 @@ def recover_file(filename:str):
                 break
 
             file.write(data)
+
+    # Encerra a conexão
+    client_socket.close()
 
 
             
