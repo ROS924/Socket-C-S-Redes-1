@@ -6,6 +6,15 @@ Created on Thu Dec 14 11:46:06 2023
 """
 
 import socket
+import json
+
+my_ip = '192.198.0.1'
+port = 4444
+proxy_ip = '192.198.0.2'
+
+#client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#client_socket.bind((my_ip, port))
+
 
 def upload_file():
     print("upload...")
@@ -60,14 +69,29 @@ def initiate_interface():
             if quit_confirm == 'y':
                 return
 
-def recover_file(filename):
+def recover_file(filename:str):
+    # iniciar conexão
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    port = 4444
-    proxy: int
 
-    client_socket.recv()
+    # preparar mensagem
+    msg = "{\"tipo\":\"recover\",\"conteudo\":\"" + filename + "\"}"
 
-    pass
+    # conexão com o proxy
+    client_socket.connect((proxy_ip, port))
+
+    # enviar mensagem
+    client_socket.send(msg.encode())
+
+    # receber arquivo como resposta
+    with open(filename, 'wb') as file:
+        while 1:
+            data = client_socket.recv(1000000)
+
+            if not data:
+                break
+
+            file.write(data)
+
 
             
     
