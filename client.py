@@ -45,7 +45,6 @@ if __name__ == "__main__":
     # Choose one of the following options based on your needs:
 
     # Option 1: Connect to the server
-    # send_connect_message()
 
     # Option 2: Send a file
     send_upload_message("teste.txt")
