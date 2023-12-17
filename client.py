@@ -50,7 +50,7 @@ def send_upload_message(filename, destination_address, copies):
 def send_recover_message(filename,destination_address):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_host = destination_address  
-    server_port = 5555  # proxy TCP port number
+    server_port = port_p  # proxy TCP port number
 
     client_socket.connect((server_host, server_port))
 
@@ -63,7 +63,7 @@ def send_recover_message(filename,destination_address):
 def send_modify_message(filename, destination_address, copies):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_host = destination_address  
-    server_port = 5555  # proxy TCP port number
+    server_port = port_p  # proxy TCP port number
 
     client_socket.connect((server_host, server_port))
 
@@ -76,7 +76,7 @@ def send_modify_message(filename, destination_address, copies):
 def send_file(filename, destination_address):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_host = destination_address  
-    server_port = 5555  # proxy TCP port number
+    server_port = port_p  # proxy TCP port number
 
     client_socket.connect((server_host, server_port))
 

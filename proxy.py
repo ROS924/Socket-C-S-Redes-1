@@ -182,7 +182,7 @@ def handle_connection(client_socket, source_addresses):
         
         for element in destination_list:
             send_upload_message(filename+"-proxy.txt", element)
-            send_file(filename+"-proxy.txt", element, 4444)
+            send_file(filename+"-proxy.txt", element, port_s)
             print("File relayed to "+element+"\n")
             append_file_server(filename+".txt", element)
             print(saved_files)
@@ -211,7 +211,7 @@ def handle_connection(client_socket, source_addresses):
                 print(f"Received file: {filename}")
                 print("\nRelaying file...")
                 print("Sending file...") 
-                send_file(filename, client_ip, 3333)
+                send_file(filename, client_ip, port_c)
                 print("File sent") 
                 print("File relayed to client\n")
                 break
@@ -228,7 +228,7 @@ def handle_connection(client_socket, source_addresses):
         source_address = client_socket.getpeername()[0]
         print("Replying FIND message from server") 
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.connect((source_address, 4444))
+        client_socket.connect((source_address, port_s))
         print("Connection successful") 
         message = "PROXY-CONFIRM"
         client_socket.send(message.encode('utf-8'))
@@ -238,7 +238,7 @@ def handle_connection(client_socket, source_addresses):
     
     elif message.startswith("SERVER-STATUS"):
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.connect((client_ip, 3333))
+        client_socket.connect((client_ip, port_c))
         message = "Connected with " + str(len(source_addresses)) + " machines with these addresses " + str(source_addresses)
         client_socket.send(message.encode('utf-8'))
         client_socket.close()
@@ -253,7 +253,7 @@ def handle_connection(client_socket, source_addresses):
             print("MODIFY entered loop")
             client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             print("MODIFY socket opened")
-            client_socket.connect((client_ip, 3333))
+            client_socket.connect((client_ip, port_c))
             print("MODIFY socket connected")
             message = "DELETION"
             client_socket.send(message.encode('utf-8'))
@@ -275,7 +275,7 @@ def handle_connection(client_socket, source_addresses):
             filename = filename.split(".")[0]
 
             client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            client_socket.connect((client_ip, 3333))
+            client_socket.connect((client_ip, port_c))
             message = "RESEND:"+str(new_copies)
             client_socket.send(message.encode('utf-8'))
             print("RESEND MESSAGE")
@@ -294,7 +294,7 @@ def handle_connection(client_socket, source_addresses):
             
             for element in destination_list:
                 send_upload_message(filename+"-proxy.txt", element)
-                send_file(filename+"-proxy.txt", element, 4444)
+                send_file(filename+"-proxy.txt", element, port_s)
                 print("File relayed to "+element+"\n")
                 append_file_server(filename+".txt", element)
                 print(saved_files)
