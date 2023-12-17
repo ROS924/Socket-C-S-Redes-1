@@ -26,7 +26,7 @@ def start_server(port:int):
 
 
 def send_message(message, address, port):
-    # Send the connect message to server port
+    # Send message with file to specified address and port
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((address, port))
     client_socket.send(message.encode('utf-8')) 

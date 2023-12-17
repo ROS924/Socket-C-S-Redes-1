@@ -5,11 +5,6 @@ import os
 
 from utils import *
 
-'''
-GLOBAL VARIABLES
-    In this section you can add your global variables:
-'''
-
 saved_files = {} #stores filename and a list of IPs associated with it.
 
 '''
@@ -33,7 +28,6 @@ def handle_udp_client(server_socket_udp):
             client_ip = client_address[0]
             print(f"Updated client address as {client_ip}")
             server_socket_udp.sendto(response.encode('utf-8'), client_address)
-
         
 
 def start_udp_server():
@@ -132,7 +126,30 @@ FLOW CONTROL
     Functions to handle control of the application based on messages
     received.
 '''
+def relay_file(filename, copies):
+    # reused when modifying number of copies
+    print("FILE Wait Accept") 
+    client_socket, client_address = server_socket.accept()
+    print("FILE Wait Accept passed") 
+    receive_file(client_socket, filename+"-proxy.txt")
+    print("File receive passed") 
+    print(f"Received file: {filename}")
+    print("\nRelaying file...")
     
+    destination_list = random.sample(source_addresses, copies)
+    print("Destination list passed") 
+    
+    for element in destination_list:
+        send_upload_message(filename+"-proxy.txt", element)
+        send_file(filename+"-proxy.txt", element, port_s)
+        print("File relayed to "+element+"\n")
+        append_file_server(filename+".txt", element)
+        print(saved_files)
+        print("File sent passed") 
+
+    client_socket.close()
+    print("File socket closed") 
+    os.remove(filename+"-proxy.txt")
 
 def handle_connection(client_socket, source_addresses):
     # Receive the message containing the operation and filename
@@ -162,28 +179,7 @@ def handle_connection(client_socket, source_addresses):
         filename = filename.split(".")[0]
         copies = int(message.split(":")[2])
         
-        print("FILE Wait Accept") 
-        client_socket, client_address = server_socket.accept()
-        print("FILE Wait Accept passed") 
-        receive_file(client_socket, filename+"-proxy.txt")
-        print("File receive passed") 
-        print(f"Received file: {filename}")
-        print("\nRelaying file...")
-        
-        destination_list = random.sample(source_addresses, copies)
-        print("Destination list passed") 
-        
-        for element in destination_list:
-            send_upload_message(filename+"-proxy.txt", element)
-            send_file(filename+"-proxy.txt", element, port_s)
-            print("File relayed to "+element+"\n")
-            append_file_server(filename+".txt", element)
-            print(saved_files)
-            print("File sent passed") 
-
-        client_socket.close()
-        print("File socket closed") 
-        os.remove(filename+"-proxy.txt")
+        relay_file(filename, copies)
         
     elif message.startswith("RECOVER:"):
         # Handles the client requesting a file recovery
@@ -274,29 +270,7 @@ def handle_connection(client_socket, source_addresses):
             print("RESEND MESSAGE")
             client_socket.close()
             
-            print("FILE Wait Accept")
-            client_socket, client_address = server_socket.accept()
-            print("FILE Wait Accept passed")
-            receive_file(client_socket, filename+"-proxy.txt")
-            print("File receive passed")
-            print(f"Received file: {filename}")
-            print("\nRelaying file...")
-            
-            destination_list = random.sample(source_addresses, new_copies)
-            print("Destination list passed")
-            
-            for element in destination_list:
-                send_upload_message(filename+"-proxy.txt", element)
-                send_file(filename+"-proxy.txt", element, port_s)
-                print("File relayed to "+element+"\n")
-                append_file_server(filename+".txt", element)
-                print(saved_files)
-                print("File sent passed")
-
-            client_socket.close()
-            print("File socket closed")
-            os.remove(filename+"-proxy.txt")
-
+            relay_file(filename, new_copies)
 
 if __name__ == "__main__":
     server_socket = start_server(port_p)
