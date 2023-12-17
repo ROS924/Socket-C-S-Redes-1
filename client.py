@@ -97,17 +97,26 @@ if __name__ == "__main__":
         if (user_input.startswith("help")):
             print("List of commands(use parameters without brackets):\n")
             print(
-                "upload [filename with extension] [number of copies] --- uploads n copies of filename to random connected servers")
+                "upload [filename with extension] [number of copies] --- uploads n copies of filename to random connected servers\n")
             print(
-                "recover [filename with extension] --- recovers a copy of filename stored in a random connected server")
+                "recover [filename with extension] --- recovers a copy of filename stored in a random connected server\n")
             print(
-                "connected-servers --- displays the number and list of connected servers.")
+                "connected-servers --- displays the number and list of connected servers.\n")
             print(
-                "modify [filename with extension] [number of copies] --- changes the number of copies in servers to given number")
+                "modify [filename with extension] [number of copies] --- changes the number of copies in servers to given number\n")
             print("quit --- closes the application")
         elif (user_input.startswith("upload")):
-            filename = user_input.split()[1]
-            copies = user_input.split()[2]
+
+            if (len(user_input.split()) < 2):
+                print("missing parameter. If you're not sure what to do, type help.\n")
+                continue
+
+            filename, copies = user_input.split()
+
+            if (isinstance(copies, int)):
+                print("number of copies must be integer\n")
+                continue
+
             max_copies = int(send_status_message(proxy_address).split()[2])
 
             if (int(copies) <= max_copies):
@@ -119,15 +128,29 @@ if __name__ == "__main__":
                     "You can check the number of connected servers by the 'connected-servers' command.")
 
         elif (user_input.startswith("recover")):
+            if (len(user_input.split()) < 1):
+                print("missing parameter. If you're not sure what to do, type help.\n")
+                continue
+
             filename = user_input.split()[1]
             send_recover_message(filename, proxy_address)
             recover_file(filename.split(".")[0]+"-recovered.txt")
+
         elif (user_input.startswith("connected-servers")):
             status = send_status_message(proxy_address)
             print(status)
+
         elif (user_input.startswith("modify")):
-            filename = user_input.split()[1]
-            copies = user_input.split()[2]
+
+            if (len(user_input.split()) < 2):
+                print("missing parameter. If you're not sure what to do, type help.\n")
+                continue
+
+            filename, copies = user_input.split()
+            if (isinstance(copies, int)):
+                print("number of copies must be integer\n")
+                continue
+            
             max_copies = int(send_status_message(proxy_address).split()[2])
 
             send_modify_message(filename, proxy_address, copies)

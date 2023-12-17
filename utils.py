@@ -18,10 +18,9 @@ def start_server(port: int):
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind((host, port))
-    # receives as parameter the number of possible queued connections
-    server_socket.listen(5)
+    server_socket.listen(5)  # number of possible queued connections
 
-    print(f"Host listening on {host}:{port}")
+    print(f"Listening on {host}:{port}")
 
     return server_socket
 
