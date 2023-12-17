@@ -23,3 +23,11 @@ def start_server(port:int):
     print(f"Host listening on {host}:{port}")
 
     return server_socket
+
+
+def send_message(message, address, port):
+    # Send the connect message to server port
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.connect((address, port))
+    client_socket.send(message.encode('utf-8')) 
+    client_socket.close()

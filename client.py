@@ -5,12 +5,11 @@ from utils import *
 
 
 def send_broadcast_message():
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-
     # Send the connect message to the broadcast address
     message = "CLIENT-FIND"
 
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     client_socket.sendto(message.encode('utf-8'), (broadcast_address, port_b))
 
     # Receive the response (assuming the server responds with its address)
@@ -20,65 +19,41 @@ def send_broadcast_message():
     client_socket.close()
     return server_address[0]
 
-def send_status_message(destination_address):
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect((destination_address, port_p))
 
+def send_status_message(destination_address):
     # Send the connect message
     message = "SERVER-STATUS"
-    client_socket.send(message.encode('utf-8'))
 
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.connect((destination_address, port_p))
+    client_socket.send(message.encode('utf-8'))
     client_socket, client_address = server_socket.accept()
+
     response = client_socket.recv(1024).decode('utf-8')
     
     client_socket.close()
 
     return response
 
-def send_upload_message(filename, destination_address, copies):
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect((destination_address, port_p))
-
+def send_upload_message(filename, address, copies):
     # Send the connect message
     message = "FILE:"+filename+":"+copies
-    client_socket.send(message.encode('utf-8'))
-
-    client_socket.close()
+    send_message(message, address, port_p)
 
 
-
-def send_recover_message(filename,destination_address):
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_host = destination_address  
-    server_port = port_p  # proxy TCP port number
-
-    client_socket.connect((server_host, server_port))
-
-    # Send the connect message
+def send_recover_message(filename,address):
     message = "RECOVER:"+filename
-    client_socket.send(message.encode('utf-8'))
+    send_message(message, address, port_p)
 
-    client_socket.close()
 
-def send_modify_message(filename, destination_address, copies):
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_host = destination_address  
-    server_port = port_p  # proxy TCP port number
-
-    client_socket.connect((server_host, server_port))
-
-    # Send the connect message
+def send_modify_message(filename, address, copies):
     message = "MODIFY:"+filename+":"+copies
-    client_socket.send(message.encode('utf-8'))
+    send_message(message, address, port_p)
 
-    client_socket.close()
 
 def send_file(filename, destination_address):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_host = destination_address  
-    server_port = port_p  # proxy TCP port number
-
-    client_socket.connect((server_host, server_port))
+    client_socket.connect((destination_address, port_p))
 
     with open(filename, 'rb') as file:
         data = file.read(1024)

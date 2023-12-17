@@ -114,24 +114,17 @@ MESSAGES FUNCTIONS
     3) RECOVER:{filename} - signals the recipient it wants filename back
     from a storage server
 '''
-
-def send_message(message, address):
-    # Send the connect message to server port
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect((address, port_s))
-    client_socket.send(message.encode('utf-8')) 
-    client_socket.close()
             
 def send_upload_message(filename, source_address):
-    send_message(filename, source_address)
+    send_message(filename, source_address, port_s)
     
 def send_recover_message(filename, source_address):
     message = "RECOVER:"+filename
-    send_message(message, source_address)
+    send_message(message, source_address, port_s)
 
 def send_modify_message(filename, destination_address):
     message = "MODIFY:"+filename
-    send_message(message, destination_address)
+    send_message(message, destination_address, port_s)
     
 
 '''
