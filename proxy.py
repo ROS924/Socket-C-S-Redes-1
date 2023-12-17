@@ -1,6 +1,7 @@
 import socket
 import random
 import threading
+import os
 
 '''
 GLOBAL VARIABLES
@@ -8,7 +9,6 @@ GLOBAL VARIABLES
 '''
 
 saved_files = {} #stores filename and a list of IPs associated with it.
-client_ip = ''
 
 '''
 SERVER STARTER
@@ -45,6 +45,7 @@ def handle_udp_client(server_socket_udp):
             server_socket_udp.sendto(response.encode('utf-8'), client_address)
         else:
             response = "PROXY-CONFIRM"
+            global client_ip 
             client_ip = client_address[0]
             print(f"Updated client address as {client_ip}")
             server_socket_udp.sendto(response.encode('utf-8'), client_address)
@@ -159,6 +160,19 @@ def send_recover_message(filename, source_address):
 
     client_socket.close()
 
+def send_modify_message(filename, destination_address):
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_host = destination_address  # Replace with the actual server IP address
+    server_port = 4444  # Use the same port number as in the server
+
+    client_socket.connect((server_host, server_port))
+
+    # Send the connect message
+    message = "MODIFY:"+filename
+    client_socket.send(message.encode('utf-8'))
+
+    client_socket.close()
+
 
 '''
 FLOW CONTROL
@@ -180,7 +194,7 @@ def handle_connection(client_socket, source_addresses):
         print("CONNECT message received") # FOR DEBUGGING
         source_address = client_socket.getpeername()[0]
         source_addresses.append(source_address)
-        print(f"Connected clients: {source_addresses}")
+        print(f"Connected servers: {source_addresses}")
         client_socket.close()
         print("Connect socket closed") # FOR DEBUGGING
         
@@ -193,6 +207,7 @@ def handle_connection(client_socket, source_addresses):
         print("FILE message received") # FOR DEBUGGING
         filename = message.split(":")[1]
         filename = filename.split(".")[0]
+        copies = int(message.split(":")[2])
         
         print("FILE Wait Accept") # FOR DEBUGGING
         client_socket, client_address = server_socket.accept()
@@ -202,7 +217,6 @@ def handle_connection(client_socket, source_addresses):
         print(f"Received file: {filename}")
         print("\nRelaying file...")
         
-        copies = 1
         destination_list = random.sample(source_addresses, copies)
         print("Destination list passed") # FOR DEBUGGING
         
@@ -216,6 +230,7 @@ def handle_connection(client_socket, source_addresses):
 
         client_socket.close()
         print("File socket closed") # FOR DEBUGGING
+        os.remove(filename+"-proxy.txt")
         
     elif message.startswith("RECOVER:"):
         # Handles the client requesting a file recovery
@@ -231,12 +246,12 @@ def handle_connection(client_socket, source_addresses):
                 print("RECOVER Wait Accept") # FOR DEBUGGING
                 client_socket, client_address = server_socket.accept()
                 print("RECOVER Wait Accept passed") # FOR DEBUGGING
-                receive_file(client_socket, filename+"-recovered.txt")
+                receive_file(client_socket, filename)
                 print("File received") # FOR DEBUGGING
                 print(f"Received file: {filename}")
                 print("\nRelaying file...")
                 print("Sending file...") # FOR DEBUGGING
-                send_file(filename, "192.168.1.5", 3333)
+                send_file(filename, client_ip, 3333)
                 print("File sent") # FOR DEBUGGING
                 print("File relayed to client\n")
                 break
@@ -246,6 +261,7 @@ def handle_connection(client_socket, source_addresses):
 
         client_socket.close()
         print("File socket closed") # FOR DEBUGGING
+        os.remove(filename)
 
     elif message.startswith("FIND"):
         print("FIND message received") # FOR DEBUGGING
@@ -259,8 +275,75 @@ def handle_connection(client_socket, source_addresses):
         print("Message sent") # FOR DEBUGGING
         client_socket.close()
         print("Socket closed") # FOR DEBUGGING
+    
+    elif message.startswith("SERVER-STATUS"):
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_socket.connect((client_ip, 3333))
+        message = "Connected with " + str(len(source_addresses)) + " machines with these addresses " + str(source_addresses)
+        client_socket.send(message.encode('utf-8'))
+        client_socket.close()
 
+    elif message.startswith("MODIFY:"):
+        print("MODIFY message received") # FOR DEBUGGING
+        filename = message.split(":")[1]
+        copies = int(message.split(":")[2])
+        print(filename) # FOR DEBUGGING
         
+        if (len(get_ips_for_file(filename)) > copies):
+            print("MODIFY entered loop") # FOR DEBUGGING
+            client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            print("MODIFY socket opened") # FOR DEBUGGING
+            client_socket.connect((client_ip, 3333))
+            print("MODIFY socket connected") # FOR DEBUGGING
+            message = "DELETION"
+            client_socket.send(message.encode('utf-8'))
+            print("DELETION MESSAGE SENT socket connected") # FOR DEBUGGING
+            client_socket.close()
+            print("DELETION socket closed") # FOR DEBUGGING
+
+            destination_list = random.sample(source_addresses, len(get_ips_for_file(filename))-copies)
+            print(destination_list) # FOR DEBUGGING
+            print("Destination list passed") # FOR DEBUGGING
+            for element in destination_list:
+                print("destination about to go") # FOR DEBUGGING
+                send_modify_message(filename.split(".")[0] + "-proxy-server.txt", element)
+                print(f"sent MODIFY to {destination_list}") # FOR DEBUGGING
+            client_socket.close()
+            print("MODIFY socket closed") # FOR DEBUGGING
+        elif (len(get_ips_for_file(filename)) < copies):
+            new_copies = copies - len(get_ips_for_file(filename))
+            filename = filename.split(".")[0]
+
+            client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            client_socket.connect((client_ip, 3333))
+            message = "RESEND:"+str(new_copies)
+            client_socket.send(message.encode('utf-8'))
+            print("RESEND MESSAGE")
+            client_socket.close()
+            
+            print("FILE Wait Accept") # FOR DEBUGGING
+            client_socket, client_address = server_socket.accept()
+            print("FILE Wait Accept passed") # FOR DEBUGGING
+            receive_file(client_socket, filename+"-proxy.txt")
+            print("File receive passed") # FOR DEBUGGING
+            print(f"Received file: {filename}")
+            print("\nRelaying file...")
+            
+            destination_list = random.sample(source_addresses, new_copies)
+            print("Destination list passed") # FOR DEBUGGING
+            
+            for element in destination_list:
+                send_upload_message(filename+"-proxy.txt", element)
+                send_file(filename+"-proxy.txt", element, 4444)
+                print("File relayed to "+element+"\n")
+                append_file_server(filename+".txt", element)
+                print(saved_files)
+                print("File sent passed") # FOR DEBUGGING
+
+            client_socket.close()
+            print("File socket closed") # FOR DEBUGGING
+            os.remove(filename+"-proxy.txt")
+
 
 if __name__ == "__main__":
     server_socket = start_server()
@@ -276,4 +359,5 @@ if __name__ == "__main__":
         print(f"Connection from {client_address}")
         print("Handle Connection started...") # FOR DEBUGGING
         handle_connection(client_socket, source_addresses)
+
 

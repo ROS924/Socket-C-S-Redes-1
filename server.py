@@ -1,4 +1,5 @@
 import socket
+import os
 
 def start_server():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -86,6 +87,15 @@ def handle_connection(client_socket, destination_address):
         send_file(filename+"-proxy-server.txt", destination_address)
         print(f"Recovering file: {filename}")
         print("\nRelaying file to proxy...")
+
+    elif message.startswith("MODIFY:"):
+        filename = message.split(":")[1]
+        if os.path.exists(filename):
+            # Delete the file
+            os.remove(filename)
+            print(f"The file '{filename}' has been deleted.")
+        else:
+            print(f"The file '{filename}' does not exist on this server.")
         
     else:
         filename = message.split(".")[0]
@@ -102,6 +112,7 @@ if __name__ == "__main__":
     send_connect_message(proxy_address[0])
     print("CONNECT message sent") # FOR DEBUGGING
     while True:
+        print("waiting message")
         client_socket, client_address = server_socket.accept()
         print(f"Connection from {client_address}")
         handle_connection(client_socket, proxy_address[0])
