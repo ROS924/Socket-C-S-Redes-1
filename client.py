@@ -111,7 +111,8 @@ if __name__ == "__main__":
                 print("missing parameter. If you're not sure what to do, type help.\n")
                 continue
 
-            filename, copies = user_input.split()
+            filename = user_input.split()[1]
+            copies = user_input.split()[2]
 
             if (isinstance(copies, int)):
                 print("number of copies must be integer\n")
@@ -146,7 +147,9 @@ if __name__ == "__main__":
                 print("missing parameter. If you're not sure what to do, type help.\n")
                 continue
 
-            filename, copies = user_input.split()
+            filename = user_input.split()[1]
+            copies = user_input.split()[2]
+            
             if (isinstance(copies, int)):
                 print("number of copies must be integer\n")
                 continue
