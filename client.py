@@ -149,11 +149,11 @@ if __name__ == "__main__":
 
             filename = user_input.split()[1]
             copies = user_input.split()[2]
-            
+
             if (isinstance(copies, int)):
                 print("number of copies must be integer\n")
                 continue
-            
+
             max_copies = int(send_status_message(proxy_address).split()[2])
 
             send_modify_message(filename, proxy_address, copies)
