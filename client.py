@@ -25,29 +25,25 @@ def timeout_handler(signum, frame):
 def send_broadcast_message():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    #print("Socket created") # FOR DEBUGGING
-    server_port = 6666  # Use the same port number as in the server
+    server_port = 6666  # proxy UDP port number
 
     # Send the connect message to the broadcast address
-    broadcast_address = '192.168.1.255'  # Replace with the broadcast address of your subnet
+    broadcast_address = '192.168.1.255'  #Replace with the broadcast address of your subnet
     message = "CLIENT-FIND"
 
     client_socket.sendto(message.encode('utf-8'), (broadcast_address, server_port))
-    #print("FIND message sent") # FOR DEBUGGING
 
     # Receive the response (assuming the server responds with its address)
     response, server_address = client_socket.recvfrom(1024)
-    #print("FIND response received") # FOR DEBUGGING
     print(f"Received response from {server_address}: {response.decode('utf-8')}")
 
     client_socket.close()
-    #print("Socket closed") # FOR DEBUGGING
     return server_address[0]
 
 def send_status_message(destination_address):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_host = destination_address  # Replace with the actual server IP address
-    server_port = 5555  # Use the same port number as in the server
+    server_host = destination_address  
+    server_port = 5555  # proxy TCP port number
 
     client_socket.connect((server_host, server_port))
 
@@ -64,8 +60,8 @@ def send_status_message(destination_address):
 
 def send_upload_message(filename, destination_address, copies):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_host = destination_address  # Replace with the actual server IP address
-    server_port = 5555  # Use the same port number as in the server
+    server_host = destination_address  
+    server_port = 5555  # proxy TCP port number
 
     client_socket.connect((server_host, server_port))
 
@@ -79,8 +75,8 @@ def send_upload_message(filename, destination_address, copies):
 
 def send_recover_message(filename,destination_address):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_host = destination_address  # Replace with the actual server IP address
-    server_port = 5555  # Use the same port number as in the server
+    server_host = destination_address  
+    server_port = 5555  # proxy TCP port number
 
     client_socket.connect((server_host, server_port))
 
@@ -92,8 +88,8 @@ def send_recover_message(filename,destination_address):
 
 def send_modify_message(filename, destination_address, copies):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_host = destination_address  # Replace with the actual server IP address
-    server_port = 5555  # Use the same port number as in the server
+    server_host = destination_address  
+    server_port = 5555  # proxy TCP port number
 
     client_socket.connect((server_host, server_port))
 
@@ -105,8 +101,8 @@ def send_modify_message(filename, destination_address, copies):
 
 def send_file(filename, destination_address):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_host = destination_address  # Replace with the actual server IP address
-    server_port = 5555  # Use the same port number as in the server
+    server_host = destination_address  
+    server_port = 5555  # proxy TCP port number
 
     client_socket.connect((server_host, server_port))
 
@@ -137,25 +133,7 @@ if __name__ == "__main__":
     proxy_address = send_broadcast_message()
     print("Successfully connected to proxy\n\n")
     
-    
-    # Choose one of the following options based on your needs:
 
-    # Option 1: Connect to the server
-
-    # Option 2: Send a file
-    '''
-    send_upload_message("teste.txt", proxy_address)
-    print("Upload message sent") # FOR DEBUGGING
-
-    send_file("teste.txt", proxy_address)
-    print("File Sent") # FOR DEBUGGING
-
-    send_recover_message("teste.txt", proxy_address)
-    print("Recovery message sent") # FOR DEBUGGING
-
-    recover_file("teste-recovered.txt")
-    print("File recovered") # FOR DEBUGGING
-    '''
     print_centered(" *** Welcome to FileSync *** ")
     print_centered(" *** warning: this application is a prototype *** ")
     print("You can type commands on this application. If you're not sure what to do, type help.")
@@ -207,9 +185,6 @@ if __name__ == "__main__":
             else:
                 print("Number of copies requested exceeds the number of servers.")
                 print("You can check the number of connected servers by the 'connected-servers' command.")
-
-            
-
 
 
             client_socket.close()
