@@ -3,6 +3,8 @@ import random
 import threading
 import os
 
+from utils import *
+
 '''
 GLOBAL VARIABLES
     In this section you can add your global variables:
@@ -14,24 +16,6 @@ saved_files = {} #stores filename and a list of IPs associated with it.
 SERVER STARTER
     Functions associated with starting the server:
 '''
-
-def start_server():
-    '''
-    This function starts the proxy server. it listens on all interfaces on port 5555.
-    This is in order to receive files from both client during upload and server during
-    file retrieval.
-    '''
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    host = '0.0.0.0'  # Listen on all available interfaces
-    port = 5555  # Choose a port number
-
-    server_socket.bind((host, port))
-    server_socket.listen(5) #receives as parameter the number of possible queued connections
-
-    print(f"Server listening on {host}:{port}")
-
-    return server_socket
 
 def handle_udp_client(server_socket_udp):
     while True:
@@ -53,11 +37,13 @@ def handle_udp_client(server_socket_udp):
         
 
 def start_udp_server():
+
+    host = '0.0.0.0'
+    port_udp = port_b
+
     # UDP socket
     server_socket_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     server_socket_udp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    host = '0.0.0.0'
-    port_udp = 6666
     server_socket_udp.bind((host, port_udp))
 
     print(f"UDP Server listening on {host}:{port_udp}")
@@ -79,12 +65,9 @@ def receive_file(client_socket, filename): #receives socket. filename is so it c
                 break
             file.write(data)
 
-def send_file(filename, destination_address, port):
+def send_file(filename, destination_address, server_port):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_host = destination_address 
-    server_port = port  # Use the same port number as in the server
-
-    client_socket.connect((server_host, server_port))
+    client_socket.connect((destination_address, server_port))
 
     with open(filename, 'rb') as file:
         data = file.read(1024)
@@ -132,46 +115,24 @@ MESSAGES FUNCTIONS
     from a storage server
 '''
 
+def send_message(message, address):
+    # Send the connect message to server port
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.connect((address, port_s))
+    client_socket.send(message.encode('utf-8')) 
+    client_socket.close()
             
 def send_upload_message(filename, source_address):
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_host = source_address  
-    server_port = 4444  # Use the same port number as in the server
-
-    client_socket.connect((server_host, server_port))
-
-    # Send the connect message
-    message = filename
-    client_socket.send(message.encode('utf-8'))
-
-    client_socket.close()
+    send_message(filename, source_address)
     
 def send_recover_message(filename, source_address):
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_host = source_address  # Replace with the actual server IP address
-    server_port = 4444  # Use the same port number as in the server
-
-    client_socket.connect((server_host, server_port))
-
-    # Send the connect message
     message = "RECOVER:"+filename
-    client_socket.send(message.encode('utf-8'))
-
-    client_socket.close()
+    send_message(message, source_address)
 
 def send_modify_message(filename, destination_address):
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_host = destination_address  # Replace with the actual server IP address
-    server_port = 4444  # Use the same port number as in the server
-
-    client_socket.connect((server_host, server_port))
-
-    # Send the connect message
     message = "MODIFY:"+filename
-    client_socket.send(message.encode('utf-8'))
-
-    client_socket.close()
-
+    send_message(message, destination_address)
+    
 
 '''
 FLOW CONTROL
@@ -345,7 +306,7 @@ def handle_connection(client_socket, source_addresses):
 
 
 if __name__ == "__main__":
-    server_socket = start_server()
+    server_socket = start_server(port_p)
     start_udp_server()
     print("Sever started")
     source_addresses = []

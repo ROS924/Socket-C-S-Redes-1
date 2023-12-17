@@ -1,37 +1,17 @@
 import socket
 import shutil
 
-def start_server():
-    '''
-    This function starts the client server. it listens on all interfaces on port 3333.
-    This is in order to receive files from both client during upload and server during
-    file retrieval.
-    '''
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    host = '0.0.0.0'  # Listen on all available interfaces
-    port = 3333  # Choose a port number
+from utils import * 
 
-    server_socket.bind((host, port))
-    server_socket.listen(5) #receives as parameter the number of possible queued connections
-
-    print(f"Client awaiting file on {host}:{port}")
-
-    return server_socket
-
-def timeout_handler(signum, frame):
-    # This function will be called when the timeout occurs
-    raise TimeoutError("Timeout occurred")
 
 def send_broadcast_message():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    server_port = 6666  # proxy UDP port number
 
     # Send the connect message to the broadcast address
-    broadcast_address = '192.168.1.255'  #Replace with the broadcast address of your subnet
     message = "CLIENT-FIND"
 
-    client_socket.sendto(message.encode('utf-8'), (broadcast_address, server_port))
+    client_socket.sendto(message.encode('utf-8'), (broadcast_address, port_b))
 
     # Receive the response (assuming the server responds with its address)
     response, server_address = client_socket.recvfrom(1024)
@@ -42,10 +22,7 @@ def send_broadcast_message():
 
 def send_status_message(destination_address):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_host = destination_address  
-    server_port = 5555  # proxy TCP port number
-
-    client_socket.connect((server_host, server_port))
+    client_socket.connect((destination_address, port_p))
 
     # Send the connect message
     message = "SERVER-STATUS"
@@ -60,10 +37,7 @@ def send_status_message(destination_address):
 
 def send_upload_message(filename, destination_address, copies):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_host = destination_address  
-    server_port = 5555  # proxy TCP port number
-
-    client_socket.connect((server_host, server_port))
+    client_socket.connect((destination_address, port_p))
 
     # Send the connect message
     message = "FILE:"+filename+":"+copies
@@ -129,7 +103,7 @@ def print_centered(text):
     print(centered_text)
 
 if __name__ == "__main__":
-    server_socket = start_server()
+    server_socket = start_server(port_c) # starts client server
     proxy_address = send_broadcast_message()
     print("Successfully connected to proxy\n\n")
     

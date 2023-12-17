@@ -1,24 +1,11 @@
 import socket
 import os
+from utils import * 
 
-def start_server():
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    host = '0.0.0.0'  # Listen on all available interfaces
-    port = 4444  # Choose a port number
-
-    server_socket.bind((host, port))
-    server_socket.listen(5)
-
-    print(f"Server listening on {host}:{port}")
-
-    return server_socket
     
 def send_connect_message(proxy_address):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_host = proxy_address 
-    server_port = 5555  # Use the same port number as in the server
-
-    client_socket.connect((server_host, server_port))
+    client_socket.connect((proxy_address, port_p))
 
     # Send the connect message
     message = "CONNECT"
@@ -30,14 +17,13 @@ def send_connect_message(proxy_address):
 def send_broadcast_message():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+   
     print("Socket created") 
-    server_port = 6666  # proxy UDP port number
 
     # Send the connect message to the broadcast address
-    broadcast_address = '192.168.1.255'  # Replace with the broadcast address of your subnet
     message = "FIND"
 
-    client_socket.sendto(message.encode('utf-8'), (broadcast_address, server_port))
+    client_socket.sendto(message.encode('utf-8'), (broadcast_address, port_b))
     print("FIND message sent") 
 
     # Receive the response (assuming the server responds with its address)
@@ -61,10 +47,7 @@ def receive_file(client_socket, filename):
             
 def send_file(filename, destination_address):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_host = destination_address  
-    server_port = 5555  # proxy TCP port number
-
-    client_socket.connect((server_host, server_port))
+    client_socket.connect((destination_address, port_p))
 
     with open(filename, 'rb') as file:
         data = file.read(1024)
@@ -104,7 +87,8 @@ def handle_connection(client_socket, destination_address):
         print(f"Received file: {filename}")
 
 if __name__ == "__main__":
-    server_socket = start_server()
+    server_socket = start_server(port_s)
+
     print("Sending FIND message") 
     proxy_address = send_broadcast_message()
     print("FIND message sent. Now connecting...") 
