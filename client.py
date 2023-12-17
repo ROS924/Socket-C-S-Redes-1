@@ -1,7 +1,7 @@
 import socket
 import shutil
 
-from utils import * 
+from utils import *
 
 
 def send_broadcast_message():
@@ -14,7 +14,8 @@ def send_broadcast_message():
 
     # Receive the response (assuming the server responds with its address)
     response, server_address = client_socket.recvfrom(1024)
-    print(f"Received response from {server_address}: {response.decode('utf-8')}")
+    print(
+        f"Received response from {server_address}: {response.decode('utf-8')}")
 
     client_socket.close()
     return server_address[0]
@@ -30,10 +31,11 @@ def send_status_message(destination_address):
     client_socket, client_address = server_socket.accept()
 
     response = client_socket.recv(1024).decode('utf-8')
-    
+
     client_socket.close()
 
     return response
+
 
 def send_upload_message(filename, address, copies):
     # Send the connect message
@@ -41,7 +43,7 @@ def send_upload_message(filename, address, copies):
     send_message(message, address, port_p)
 
 
-def send_recover_message(filename,address):
+def send_recover_message(filename, address):
     message = "RECOVER:"+filename
     send_message(message, address, port_p)
 
@@ -63,40 +65,47 @@ def send_file(filename, destination_address):
 
     client_socket.close()
 
-def recover_file(filename): #receives socket. filename is so it can save a copy.
+
+# receives socket. filename is so it can save a copy.
+def recover_file(filename):
     client_socket, client_address = server_socket.accept()
     with open(filename, 'wb') as file:
         while True:
-            data = client_socket.recv(1024) #reads the data in the file.
+            data = client_socket.recv(1024)  # reads the data in the file.
             if not data:
                 break
             file.write(data)
+
 
 def print_centered(text):
     terminal_width, _ = shutil.get_terminal_size()
     centered_text = text.center(terminal_width)
     print(centered_text)
 
+
 if __name__ == "__main__":
-    server_socket = start_server(port_c) # starts client server
+    server_socket = start_server(port_c)  # starts client server
     proxy_address = send_broadcast_message()
     print("Successfully connected to proxy\n\n")
-    
 
     print_centered(" *** Welcome to FileSync *** ")
     print_centered(" *** warning: this application is a prototype *** ")
     print("You can type commands on this application. If you're not sure what to do, type help.")
-    while(True):
+    while (True):
         user_input = input("FileSync>> ")
 
-        if(user_input.startswith("help")):
+        if (user_input.startswith("help")):
             print("List of commands(use parameters without brackets):\n")
-            print("upload [filename with extension] [number of copies] --- uploads n copies of filename to random connected servers")
-            print("recover [filename with extension] --- recovers a copy of filename stored in a random connected server")
-            print("connected-servers --- displays the number and list of connected servers.")
-            print("modify [filename with extension] [number of copies] --- changes the number of copies in servers to given number")
+            print(
+                "upload [filename with extension] [number of copies] --- uploads n copies of filename to random connected servers")
+            print(
+                "recover [filename with extension] --- recovers a copy of filename stored in a random connected server")
+            print(
+                "connected-servers --- displays the number and list of connected servers.")
+            print(
+                "modify [filename with extension] [number of copies] --- changes the number of copies in servers to given number")
             print("quit --- closes the application")
-        elif(user_input.startswith("upload")):
+        elif (user_input.startswith("upload")):
             filename = user_input.split()[1]
             copies = user_input.split()[2]
             max_copies = int(send_status_message(proxy_address).split()[2])
@@ -106,16 +115,17 @@ if __name__ == "__main__":
                 send_file(filename, proxy_address)
             else:
                 print("Number of copies requested exceeds the number of servers.")
-                print("You can check the number of connected servers by the 'connected-servers' command.")
+                print(
+                    "You can check the number of connected servers by the 'connected-servers' command.")
 
-        elif(user_input.startswith("recover")):
+        elif (user_input.startswith("recover")):
             filename = user_input.split()[1]
             send_recover_message(filename, proxy_address)
             recover_file(filename.split(".")[0]+"-recovered.txt")
-        elif(user_input.startswith("connected-servers")):
+        elif (user_input.startswith("connected-servers")):
             status = send_status_message(proxy_address)
             print(status)
-        elif(user_input.startswith("modify")):
+        elif (user_input.startswith("modify")):
             filename = user_input.split()[1]
             copies = user_input.split()[2]
             max_copies = int(send_status_message(proxy_address).split()[2])
@@ -126,27 +136,21 @@ if __name__ == "__main__":
                 client_socket, client_address = server_socket.accept()
                 response = client_socket.recv(1024).decode('utf-8')
 
-                if(response.startswith("RESEND:")):
+                if (response.startswith("RESEND:")):
                     new_copies = response.split(":")[1]
                     send_file(filename, proxy_address)
 
-
             else:
                 print("Number of copies requested exceeds the number of servers.")
-                print("You can check the number of connected servers by the 'connected-servers' command.")
-
+                print(
+                    "You can check the number of connected servers by the 'connected-servers' command.")
 
             client_socket.close()
 
             if (response.startswith("RESEND:")):
                 copies = int(response.split(":")[1])
-                
 
-        elif(user_input.startswith("quit")):
+        elif (user_input.startswith("quit")):
             break
         else:
             print(f"{user_input} não é um comando reconhecido desta aplicação")
-
-
-
-
