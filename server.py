@@ -4,14 +4,9 @@ from utils import *
 
 
 def send_connect_message(proxy_address):
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect((proxy_address, port_p))
-
-    # Send the connect message
     message = "CONNECT"
-    client_socket.send(message.encode('utf-8'))
+    send_message(message, proxy_address, port_p)
 
-    client_socket.close()
 
 
 def send_broadcast_message():

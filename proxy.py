@@ -270,12 +270,10 @@ def handle_connection(client_socket, source_addresses):
             new_copies = copies - len(get_ips_for_file(filename))
             filename = filename.split(".")[0]
 
-            client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            client_socket.connect((client_ip, port_c))
             message = "RESEND:"+str(new_copies)
-            client_socket.send(message.encode('utf-8'))
             print("RESEND MESSAGE")
-            client_socket.close()
+
+            send_message(message, client_ip, port_c)
 
             relay_file(filename, new_copies)
 
